@@ -268,6 +268,47 @@ Follow-up
 
    So far looks good and corrections implemented. 
 
+Follow-up 2
+
+   Problem 8 follow-up:
+   Please fix what happens if someone logs out or switches accounts while the
+   chatbot is still answering.
+   Right now, the messages clear when the account changes, but the previous
+   request can finish afterward and put the old customer's reply back on the
+   screen.
+   Cancel pending chat requests when the account changes, and make sure any
+   late responses are ignored. Clear the draft, conversation ID, suggested
+   products and page search results as well. An old request should not change
+   the new customer's chat or loading state.
+   Test this with a delayed reply: send a message while logged in, log out
+   before the answer arrives, and check that the old answer never appears.
+   Also check switching to another account and that normal saved history
+   still loads correctly.
+   Record this follow-up and the actual test results in AI_prompts.md and
+   output/harness.md.
+
+   Needed because a chat request still in progress when the account changed
+   could finish afterwards and put the previous customer's reply back on
+   screen.
+
+   Test results (2026-10-06, real app in headless Chrome, final run 23/23
+   passed):
+   - Delayed reply, then logout: the request was cancelled (net::ERR_ABORTED),
+     the old answer never appeared, and the guest chat was idle and worked
+     normally.
+   - Cancellation deliberately disabled: the old answer still arrived (200,
+     "We have 27 hoodies...") but was ignored. Nothing was shown, no page
+     results appeared, and the loading state didn't change. The server saved
+     it only to the account that asked.
+   - Logout clears the draft, page search results, messages and suggested
+     products.
+   - Switching to Sam while Test's reply was pending: Sam saw exactly his own
+     32 saved messages, and none of Test's.
+   - Normal saved history: Sam's new message was saved under Sam only and
+     reloaded after a page refresh.
+   - Earlier chat suites still pass (chat 15, page browsing 23, product cards
+     5, design 16, usability 32).
+
 
 PROBLEM 9 - USABILITY IMPROVEMENTS
 

@@ -84,6 +84,7 @@ function fromHistory(m: HistoryMessage): Message {
 export default function ChatPanel() {
   const { user } = useAuth()
   const chatResults = useChatResults()
+  const { clear: clearPageResults } = chatResults
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -95,15 +96,30 @@ export default function ChatPanel() {
   const [slow, setSlow] = useState(false)
   const bodyRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  // Which account the chat currently belongs to. Every chat request remembers the
+  // value it started with; if the account changes before it finishes, its result
+  // is thrown away, so an old customer's answer can never land in a new chat.
+  const accountEpoch = useRef(0)
+  // The chat request in flight, so it can be cancelled when the account changes.
+  const pending = useRef<AbortController | null>(null)
   const onProductPage = /^\/products\/[^/]+$/.test(location.pathname)
 
-  // A different person logged in (or out): drop what's on screen, then load
-  // that customer's own saved history (the server decides whose, from the login cookie).
+  // A different person logged in (or out): cancel anything still in flight, drop
+  // everything on screen (messages with their product cards and options, the draft,
+  // the conversation, the loading state, page search results), then load that
+  // customer's own saved history (the server decides whose, from the login cookie).
   const userId = user?.id ?? null
   useEffect(() => {
+    accountEpoch.current += 1
+    pending.current?.abort()
+    pending.current = null
+    setSending(false)
+    setSlow(false)
+    setDraft('')
     setMessages([])
     setHistoryCount(0)
     setConversationId(null)
+    clearPageResults()
     if (userId === null) {
       setHistoryState('none')
       return
@@ -122,7 +138,7 @@ export default function ChatPanel() {
         if (e.name !== 'AbortError') setHistoryState('error')
       })
     return () => ctrl.abort()
-  }, [userId])
+  }, [userId, clearPageResults])
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight })
@@ -172,11 +188,18 @@ export default function ChatPanel() {
   }
 
   async function ask(text: string) {
+    const epoch = accountEpoch.current
+    const current = () => epoch === accountEpoch.current // still the same customer?
     setSending(true)
     setSlow(false)
-    const slowTimer = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
+    const slowTimer = setTimeout(() => current() && setSlow(true), SLOW_AFTER_MS)
     const ctrl = new AbortController()
-    const timeout = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS)
+    pending.current = ctrl
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      ctrl.abort()
+    }, REQUEST_TIMEOUT_MS)
     try {
       let res: Response
       try {
@@ -193,9 +216,10 @@ export default function ChatPanel() {
           }),
         })
       } catch {
-        throw new ChatError(friendlyError(null, undefined, ctrl.signal.aborted))
+        throw new ChatError(friendlyError(null, undefined, timedOut))
       }
       const data = await res.json().catch(() => null)
+      if (!current()) return // the account changed while we waited: ignore this late answer
       // A 5xx with no JSON body comes from the dev server's proxy: the backend itself isn't answering.
       if (!data) throw new ChatError(friendlyError(res.status >= 500 ? null : res.status, undefined, false))
       if (!res.ok) throw new ChatError(friendlyError(res.status, data.detail, false))
@@ -213,24 +237,31 @@ export default function ChatPanel() {
         },
       ])
     } catch (err) {
+      if (!current()) return // cancelled because the account changed: not an error to show
       const msg = err instanceof ChatError ? err.message : 'Something went wrong with that message.'
       setMessages((m) => [...m, { role: 'error', text: msg, retryText: text }])
     } finally {
       clearTimeout(slowTimer)
       clearTimeout(timeout)
-      setSending(false)
-      setSlow(false)
-      inputRef.current?.focus()
+      if (pending.current === ctrl) pending.current = null
+      // Only the request that belongs to the current customer may change the loading state.
+      if (current()) {
+        setSending(false)
+        setSlow(false)
+        inputRef.current?.focus()
+      }
     }
   }
 
   async function showAgain(browse: BrowseRequest) {
+    const epoch = accountEpoch.current
     const res = await fetch('/api/page-search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(browse),
     })
-    if (res.ok) chatResults.show(await res.json())
+    const results = res.ok ? await res.json() : null
+    if (results && epoch === accountEpoch.current) chatResults.show(results)
   }
 
   async function clearChat() {

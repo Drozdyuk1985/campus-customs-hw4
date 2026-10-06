@@ -233,6 +233,18 @@ history, or write anything.
   - anything from guests
 - **Guests:** they chat with in-memory history only (20 messages, up to 500
   conversations, 2-hour expiry, lost on restart), tied to their address.
+- **When the account changes** (logout, login or switching accounts, a
+  Problem 8 follow-up), `ChatPanel.tsx`:
+  - cancels the chat request in flight (`AbortController`)
+  - clears the messages (with their product cards and options), the draft,
+    the conversation ID, the loading state and any page search results
+  - then loads the new customer's own history
+
+  Every request also remembers the account "epoch" it was sent in. If a
+  response arrives after the account changed, it is ignored completely: it
+  isn't shown, puts nothing on the page, and doesn't change the loading
+  state. On the server, a request that has already started is still saved
+  only to the account that sent it.
 
 **Page context**
 
@@ -1858,3 +1870,48 @@ app and the real agent (`gpt-5.6-luna`).
 ## Part 11 - Audit trail, safety and final reference (Problem 12)
 
 See the final system reference at the top of this file: section E (safety), section G (audit trail) and section H (verification).
+
+### Problem 8 follow-up: logout or account switch while the assistant is answering
+
+**Problem.** When the account changed, the chat cleared, but a request still
+in flight could finish afterwards and put the previous customer's reply,
+cards or page results back on screen. It could also turn the loading state
+off for the new customer.
+
+**Fix (`frontend/src/components/ChatPanel.tsx`):**
+- **On every account change:**
+  - the pending request is **cancelled** (`AbortController`)
+  - messages (with suggested products and options), the **draft**, the
+    **conversation ID**, the loading and "still working" state and the **page
+    search results** are cleared
+  - the new customer's saved history is loaded
+- **Ignoring late answers:** each request records the account epoch it
+  started in. When it returns, if the epoch has changed, the response or
+  error is **ignored**. Only a request from the current account may turn the
+  loading state off. "Show again" page searches are guarded the same way.
+
+**Tests (real app, headless Chrome; the reply was delayed in the browser where
+noted):**
+
+| # | Scenario | Result |
+|---|---|---|
+| T1 | Logged in as Test, sent a question, reply delayed by 10 s; logged out after 1.5 s | Request cancelled (`net::ERR_ABORTED`). The old answer **never appeared**. The guest chat stayed idle (Send enabled, no "Finding an answer…", no error), and a new guest question was answered normally. |
+| T2 | Same, but with cancellation deliberately disabled, so the real answer arrived after logout | The old answer did arrive (HTTP 200, "We have 27 hoodies…") and was **ignored**: not shown, no page results, loading state unchanged. In the database it was saved under Test only (Test 1 row, Sam 0). |
+| T3 | Logged in, page search results on screen, half-typed draft, then logout | Page results cleared, draft empty, messages and suggested products gone |
+| T4 | Test's reply pending (12 s delay); logged out and logged in as Sam | Sam's chat showed exactly his own 32 saved messages, nothing of Test's (the delayed question never reached the server: 0 rows). Loading state idle. |
+| T5 | Normal use as Sam | Reply received and saved (`saved: true`). After reload, history included it, stored under Sam only. |
+
+**Final run:** 23/23 checks passed, with no page errors.
+
+**Earlier chat suites, re-run, all passing:**
+- chat: 15
+- page browsing: 23
+- product cards: 5
+- design: 16
+- usability: 32
+
+**Test-script fixes on the way (not app bugs):**
+- One check matched a phrase that also appears in Sam's own legitimate saved
+  history. It now matches a unique marker.
+- Database counts were made per run, so a re-run doesn't count the previous
+  run's rows.
