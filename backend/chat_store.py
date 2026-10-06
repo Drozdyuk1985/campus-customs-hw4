@@ -13,24 +13,21 @@ Row format (one row per message):
 """
 
 import json
-import re
 
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, TextPart, UserPromptPart
 
 import catalog
+import privacy
 from db import connect_rw
 from models import BrowseRequest, ChatProduct
 
 MODEL_HISTORY_MESSAGES = 20   # most recent saved messages sent to the model as context
 UI_HISTORY_MESSAGES = 60      # most recent saved messages shown in the chat panel
 
-# 13-19 digits, optionally separated by spaces or dashes: looks like a payment card number.
-_CARD_RE = re.compile(r"(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)")
-
-
 def redact(text: str) -> str:
-    """Remove card-like numbers before a message is sent to the model or saved."""
-    return _CARD_RE.sub("[card number removed]", text)
+    """Remove card numbers and explicitly shared credentials (privacy.py) before a
+    message is sent to the model, kept in memory or saved."""
+    return privacy.redact(text)
 
 
 def _parse_products_json(raw: str | None) -> tuple[list[str], dict | None]:
@@ -72,7 +69,10 @@ def model_history(user_id: int) -> list[ModelMessage]:
 
 
 def save_exchange(user_id: int, user_text: str, reply: str, product_ids: list[str], page_search: BrowseRequest | None) -> None:
-    extra = json.dumps({"product_ids": product_ids[:6], "page_search": page_search.model_dump() if page_search else None})
+    # Everything saved goes through the privacy filter, including the nested page-search fields.
+    user_text, reply = privacy.redact(user_text), privacy.redact(reply)
+    extra = json.dumps(privacy.redact_deep(
+        {"product_ids": product_ids[:6], "page_search": page_search.model_dump() if page_search else None}))
     with connect_rw() as conn:  # one transaction: both rows or neither
         conn.execute(
             "INSERT INTO chat_messages (user_id, role, content, products_json) VALUES (?, 'user', ?, NULL)",

@@ -12,8 +12,11 @@ Rules:
   renamed aside (kept, not deleted) and a new file is started.
 - Writes are atomic (temporary file, then rename) and locked, so two requests
   finishing together can't lose an entry.
-- No secrets: passwords, password hashes, session tokens, the API key, emails,
-  card-like numbers and registered customers' full names are never written. Only product-tool data and short
+- Privacy: every string in a new entry, nested fields included, goes through
+  scrub() just before writing. scrub() removes card-like numbers and explicitly
+  shared credentials (privacy.py), the API key value, password hashes,
+  64-character hex tokens, session cookie values, emails and registered
+  customers' full names. Pattern-based: see output/harness.md for limits. Only product-tool data and short
   text previews are logged, and every string passes through scrub() first.
 """
 
@@ -28,6 +31,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pydantic import BaseModel
+import privacy
 from pydantic_ai.messages import ModelMessage, ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart
 
 HW4_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +46,7 @@ _lock = threading.Lock()
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _CARD = re.compile(r"(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)")
-_SECRETISH = re.compile(r"pbkdf2_sha256\$\S+|\bcc_session=\S+|\bsk-[A-Za-z0-9_-]{8,}", re.I)
+_SECRETISH = re.compile(r"pbkdf2_sha256\$\S+|\bcc_session=\S+|\bsk-[A-Za-z0-9_-]{8,}|\b[0-9a-f]{64}\b", re.I)
 
 
 def _customer_names() -> list[str]:
@@ -59,6 +63,7 @@ def _customer_names() -> list[str]:
 
 def scrub(text: str) -> str:
     """Remove anything secret or personal from a string before it is logged."""
+    text = privacy.redact(text)  # card numbers and explicitly shared credentials
     for name in _customer_names():
         text = re.sub(re.escape(name), "[customer name removed]", text, flags=re.I)
     key = os.getenv("PORTKEY_API_KEY", "").strip()
@@ -156,8 +161,24 @@ def _read_all() -> list:
     return []
 
 
+def scrub_deep(value):
+    """scrub() every string inside an entry, however deeply nested (e.g. answer.show_on_page.title)."""
+    if isinstance(value, str):
+        return scrub(value)
+    if isinstance(value, dict):
+        return {k: scrub_deep(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [scrub_deep(v) for v in value]
+    return value
+
+
 def append(entry: dict) -> None:
-    """Add one entry to the end of the trail without changing earlier entries."""
+    """Add one entry to the end of the trail without changing earlier entries.
+
+    The new entry is scrubbed as a whole first, so no field can skip the privacy
+    filter. Existing entries are written back exactly as they were.
+    """
+    entry = scrub_deep(entry)
     AUDIT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _lock, open(LOCK_PATH, "w") as lockf:
         fcntl.flock(lockf, fcntl.LOCK_EX)  # also guards against a second server process

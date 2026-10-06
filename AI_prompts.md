@@ -455,7 +455,64 @@ Prompt
 
 Follow-up
 
-   none
+   Problem 12 follow-up:
+
+   Please fix the privacy handling in the audit log and make the
+   documentation accurate.
+
+   The current scrub function doesn't remove an explicitly shared password,
+   such as "My password is ExampleOnly123!". Also, fields inside
+   answer.show_on_page are written directly to the audit file without being
+   scrubbed.
+
+   Make sure all text fields in an audit entry, including nested fields, go
+   through the privacy filter before writing. Handle explicitly shared
+   passwords and credentials, and avoid keeping those sensitive values in
+   saved chat history or passing them to the model. Don't rely only on the
+   agent's instructions to do this.
+
+   Use dummy values to test both an ordinary message and nested search
+   fields. Check that the sensitive values are absent from new audit entries
+   and saved history, while normal product questions still work.
+
+   Keep the existing audit history intact. If you find any actual secret
+   already recorded, tell me without displaying it rather than silently
+   deleting the trail.
+
+   Update output/harness.md to describe exactly what is protected and any
+   remaining limitations. Don't claim that every possible sensitive detail is
+   automatically detected. Record this follow-up and the real test results
+   in AI_prompts.md.
+
+   Needed because explicitly shared passwords weren't filtered, and nested
+   audit fields such as answer.show_on_page skipped the scrub.
+
+   Test results (2026-10-06):
+   - Existing data scan (values not shown): no real secret in the audit trail
+     (67 entries) or saved chats (86 rows). The only match is the dummy test
+     card number typed on purpose in output/chat_memory_tests.json (Problem
+     8 test), left unchanged.
+   - Offline, 9/9 passed:
+     - An audit entry with dummy password, card, PIN, sk- key, email and
+       customer name in ordinary and nested show_on_page fields was written
+       with none of the values present.
+     - Saved history (scratch database) had none of them.
+     - The guard dropped an on-page search containing an email and removed
+       a repeated PIN.
+     - The chat route passed "My password is [credential removed] and api
+       key: [credential removed]. Is the Boola Boola T Shirt in M?" to the
+       agent.
+   - Live:
+     - "My password is ExampleOnly123! ... Boola Boola T Shirt in M?" was
+       answered correctly ($32.00, M in stock). The saved message shows
+       "[credential removed]", and 0 history rows contain the dummy.
+     - A guest PIN plus a request to title results with an email gave 27
+       hoodies titled "Hoodies", and no PIN or email in the log.
+     - "Crewnecks in XS under $60" gave 18, matching the database.
+     - Audit trail 67 -> 70 entries, with the earlier 67 unchanged and the
+       dummies absent.
+   - Regression: product questions 16/16, chat 15, product cards 5, page
+     browsing 23, account API 16.
 
 
 PROBLEM 13 - PUSH TO GITHUB AND CREATE URL

@@ -27,6 +27,7 @@ from pydantic_ai.models.openai import OpenAIResponsesModel, OpenAIResponsesModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
 import audit
+import privacy
 from models import AssistantReply, ShopDeps
 from tools import ALL_TOOLS
 
@@ -227,6 +228,17 @@ def guard_reply(out: AssistantReply, deps: ShopDeps) -> tuple[AssistantReply, st
     own = (deps.customer_email or "").lower()
     if any(e.lower() != own for e in _EMAIL_RE.findall(text)):
         return GUARD_REPLY, "another person's email"
+    # The on-page search is shown to the customer and saved, so check its text fields too.
+    if out.show_on_page is not None:
+        fields = " ".join(str(v) for v in out.show_on_page.model_dump().values() if isinstance(v, str))
+        if (privacy.redact(fields) != fields or _EMAIL_RE.search(fields) or (key and key in fields)
+                or any(p.search(fields) for p, _ in _SECRET_PATTERNS)):
+            out = out.model_copy(update={"show_on_page": None})
+            return out, "sensitive text in on-page search (dropped)"
+    # A shared credential the model repeated anyway is removed from the reply text.
+    cleaned = privacy.redact(text)
+    if cleaned != text:
+        return out.model_copy(update={"reply": cleaned}), "credential removed from reply"
     return out, None
 
 
@@ -281,7 +293,7 @@ async def chat(
                 timeout=RUN_TIMEOUT_SECONDS,
             )
             out, blocked = guard_reply(result.output, deps)
-            entry["stop_reason"] = "final_answer" if not blocked else f"final_answer_replaced_by_output_guard ({blocked})"
+            entry["stop_reason"] = "final_answer" if not blocked else f"final_answer_changed_by_output_guard ({blocked})"
         except ModelHTTPError as e:
             if not _is_content_filter(e):
                 entry["stop_reason"] = f"model_error ({type(e).__name__} {e.status_code})"

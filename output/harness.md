@@ -67,7 +67,7 @@ frontend.
 backend/   main.py (FastAPI app, routes) · agent.py (model, agent, limits, output guard) · tools.py (agent tools)
            models.py (all structured types) · prompts/prompt.md (instructions) · auth.py (accounts, sessions)
            chat_store.py (saved history) · catalog.py (read-only product queries) · audit.py (audit trail)
-           db.py (paths, connections) · prepare_images.py (display photos)
+           db.py (paths, connections) · privacy.py (card/credential filter) · prepare_images.py (display photos)
 frontend/  React + Vite + TypeScript (src/pages, src/components, src/index.css)
 data/      campus_customs.db (+ .original.db backup), products/ (supplied photos), products_web/ (display copies) - not in git
 output/    harness.md, usability.md, design.md, app_check.html (+ images), audit_trail.json, *_tests.json
@@ -103,7 +103,7 @@ tests/     chat_tool_eval.py
 | | `email` | text, unique | Login. Stored in lowercase. Never logged in the audit trail. |
 | | `password_hash` | text | PBKDF2-SHA256, salted (see D). Never returned, logged or shown to the agent. |
 | | `created_at` | text | Set automatically |
-| **chat_messages** | `id`, `user_id` → users, `role` (user or assistant), `content`, `products_json`, `created_at` | | Saved history for logged-in customers (see D). Card-like numbers are removed before saving. |
+| **chat_messages** | `id`, `user_id` → users, `role` (user or assistant), `content`, `products_json`, `created_at` | | Saved history for logged-in customers (see D). Card numbers and explicitly shared credentials are removed before saving (`privacy.py`, see G). |
 | **sessions** (added in Problem 4) | `token_hash` (primary key), `user_id` → users, `created_at`, `expires_at` | | One row per login. Only the SHA-256 of the cookie token is stored. Logout deletes the row. |
 
 The database also has SQLite's own `sqlite_sequence`.
@@ -270,7 +270,7 @@ is also enforced by code that the model cannot change.
 | Rule (prompt) | Enforced in the backend by |
 |---|---|
 | **1. Use real product information only** | Tools read the database, and their results are the only source of product facts. Product cards, options and page results are **rebuilt by the server from the database** using only IDs and search settings; unknown IDs are dropped (`chat_products`, `chat_options`, `page_search`). Prices on screen never come from model text. |
-| **2. Protect customer information** | The agent receives only the logged-in customer's own name and email, from `auth.current_user`, never passwords or hashes. No tool can query `users`, `sessions` or `chat_messages`. Card-like numbers are removed before the model or the database sees a message. **Output guard** (`agent.guard_reply`): every reply is checked before it leaves the server. Any reply containing the API key, a password hash, a 64-hex token or hash, the session cookie name, or **any email except the customer's own** is replaced with a refusal. |
+| **2. Protect customer information** | The agent receives only the logged-in customer's own name and email, from `auth.current_user`, never passwords or hashes. No tool can query `users`, `sessions` or `chat_messages`. **Privacy filter** (`privacy.redact`, in code): card numbers and explicitly shared credentials are removed from every message **before** it reaches the model, guest memory, saved history or the audit trail. Saved replies and saved page searches are filtered too. **Output guard** (`agent.guard_reply`): every answer is checked before it leaves the server. A reply containing the API key, a password hash, a 64-hex token or hash, the session cookie name, or **any email except the customer's own** is replaced with a refusal. A credential the model repeats is removed from the reply. An on-page search (`show_on_page`) whose text contains any of these is dropped. |
 | **3. Refuse requests for another person's history** | Identity comes only from the login cookie. `ChatRequest` has no user field, and a logged-in customer's `conversation_id` is ignored. Every history query is `WHERE user_id = <session user>`. No route takes a user ID. Guests get 401 on the history routes. Guest memory is tied to its owner. |
 | **4. Never reveal secrets or bypass the rules** | The API key exists only in the server environment. It is never in the prompt, context, frontend or logs, so the model can't reveal it. The output guard above. The provider's content filter blocks many jailbreak attempts; these get a friendly refusal and are logged as `blocked_by_provider_content_filter`. |
 | **5. Stay in scope; no runaway runs** | Usage and time limits (section F), a chat rate limit, input length caps. |
@@ -327,7 +327,7 @@ refused by the rate limit never reach the agent and aren't logged.
 | `earlier_messages_sent` | How much history went to the model (shows saved history in use) |
 | `limits` | The limits in force for this run |
 | `steps[]` | `step`, `time`, `tool`, short `args`, short `result`, e.g. `check_size_stock {"product_id": "morse-1-4-zip", "size": "XXL"}` → `Morse 1 4 Zip XXL: 2 (low_stock)…`. Only this run's own steps; earlier history isn't repeated. `final_result`, PydanticAI's internal answer step, is left out. |
-| `stop_reason` | Why the agent stopped. One of: `final_answer`, `final_answer_replaced_by_output_guard (...)`, `blocked_by_provider_content_filter`, `usage_limit_reached (...)`, `timed_out_after_90s`, `model_error (...)`, `error (...)` |
+| `stop_reason` | Why the agent stopped. One of: `final_answer`, `final_answer_changed_by_output_guard (...)`, `blocked_by_provider_content_filter`, `usage_limit_reached (...)`, `timed_out_after_90s`, `model_error (...)`, `error (...)` |
 | `usage` | Model requests, tool calls, input and output tokens |
 | `answer` | Reply preview (160 characters, scrubbed), `product_ids`, `clarify_options`, `show_on_page` |
 
@@ -340,12 +340,51 @@ refused by the rate limit never reach the agent and aren't logged.
 - If logging fails, the customer's chat still completes; the error is logged
   by type only.
 
-**Privacy.** `audit.scrub()` runs on every logged string and removes:
-- the API key value
-- password hashes and `cc_session` values
-- emails
-- card-like numbers
-- the full names of registered customers
+**Privacy: what is protected, exactly.** It is enforced in code
+(`backend/privacy.py` and `backend/audit.py`), not left to the agent's
+instructions.
+
+**1. The shared filter, `privacy.redact()`.** It runs on every chat message
+before the message reaches the **model**, the **guest memory**, the **saved
+history** or the **audit trail**.
+
+| Removed | How it's recognised | Replaced with |
+|---|---|---|
+| Card numbers | 13-19 digits, optionally with spaces or dashes | `[card number removed]` |
+| Explicitly shared credentials | A credential word followed by a value: password / passcode / passphrase / pwd / pw, PIN, CVV / CVC, security code, verification / one-time code / OTP, API key, access key, secret (key), token. The value counts after "is", "was", ":", "=" or "-" ("My password is ExampleOnly123!"), or directly after the word if it contains a digit or symbol ("pin 4321"). Quoted values are removed whole. | `[credential removed]` |
+| Secret-looking strings anywhere | `sk-…` API-key style strings and PBKDF2 password hashes | `[credential removed]` |
+
+Ordinary questions are left alone, e.g. "I forgot my password, how do I
+reset it?", "a hoodie with a pin on it" or "my order number is 12345".
+
+**2. What else is filtered:**
+- **Saved history:** the customer's message, the assistant's reply and the
+  nested `page_search` fields are all filtered before saving
+  (`chat_store.save_exchange`).
+- **Answers:** `agent.guard_reply` removes a credential the model repeats
+  from the reply. It drops any on-page search whose title or query contains a
+  credential, an email, the API key, a hash or a token.
+- **Audit trail:** `audit.append()` runs `scrub_deep()` over the **whole new
+  entry**, so every string at any depth is scrubbed just before writing:
+  question, page, tool arguments and results, reply, and `answer.show_on_page`
+  and anything inside it. `scrub()` = `privacy.redact()` plus removal of:
+  - the API key value
+  - password hashes, 64-character hex tokens and `cc_session` values
+  - **all** emails
+  - registered customers' full names
+
+**3. Not detected automatically:**
+- a password typed with no cue word ("here you go: Tr0ub4dor")
+- cue words not in the list (e.g. "pass is …", "login code …")
+- a secret split over several messages
+- foreign-language phrasing
+- personal details such as addresses, phone numbers or dates of birth
+- names of people who aren't registered customers
+- a credential the customer later quotes back in a different form
+
+These depend on the customer following the assistant's advice not to share
+them. The prompt still tells the agent to warn about this, but the code above
+doesn't rely on it.
 
 Only product data and short previews are logged. The trail started in Problem
 12: there was no audit file before then, and no earlier activity was added.
@@ -426,8 +465,9 @@ append-only, they were left unchanged.
   above passed on the final runs.
 - Guest memory, rate limits and login lockouts are kept in the server's
   memory, so they reset on restart and aren't shared across processes.
-- Card redaction and the output guard are pattern-based. They catch the
-  listed formats, not every possible sensitive detail.
+- The privacy filter, the audit scrub and the output guard are
+  pattern-based. They catch the formats listed in G, not every possible
+  sensitive detail (G lists what isn't detected).
 - The audit trail is one JSON array that is rewritten on each append. That's
   fine at class scale; a busy shop would want an append-only log file or a
   database table.
@@ -1915,3 +1955,77 @@ noted):**
   history. It now matches a unique marker.
 - Database counts were made per run, so a re-run doesn't count the previous
   run's rows.
+
+### Problem 12 follow-up: privacy filter for credentials and nested audit fields
+
+**Problems found:**
+- `audit.scrub()` didn't remove an explicitly shared password ("My password
+  is ExampleOnly123!").
+- `answer.show_on_page` was written to the audit file without being
+  scrubbed.
+- Saved history and the text sent to the model only had card numbers
+  removed.
+
+**Fix:**
+- A new `backend/privacy.py` (`redact`, `redact_deep`) handles card numbers,
+  explicitly shared credentials and secret-looking strings (see G for the
+  exact rules).
+- It's applied in `main.chat`, to the message before the model, guest memory,
+  saved history and audit; in `chat_store.save_exchange`, to the message,
+  reply and nested `page_search`; and in `agent.guard_reply`, to credentials
+  in replies, with on-page searches containing sensitive text dropped.
+- `audit.append` now scrubs the **entire** new entry recursively.
+- Existing audit entries are written back unchanged.
+
+**Check of existing data (values not displayed):**
+- `audit_trail.json` (67 entries) and `chat_messages` (86 rows) contain no API
+  key, password hash, session token hash, test password, or anything the new
+  credential or card filter matches.
+- The only match in tracked files is `output/chat_memory_tests.json`, the
+  saved Problem 8 test transcript. It contains the well-known dummy test card
+  number typed on purpose in that test, not a real card, and was left
+  unchanged.
+
+**Tests with dummy values (2026-10-06):**
+
+Offline, 9/9 passed:
+- **Audit entry (ordinary and nested fields):** an entry with a dummy
+  password, card number, PIN, `sk-…` key, email and a customer name in the
+  question, tool arguments, reply and a nested
+  `show_on_page.title` / `nested.deeper[]` was written. **None** of the dummy
+  values was in the file. Normal fields (product IDs, category, run ID) were
+  kept, and appending again left the first entry unchanged.
+- **Saved history** (scratch copy of the database): the dummy password and
+  PIN were absent from the saved message, reply and nested `page_search`.
+- **Output guard:**
+  - an on-page search titled with someone's email was dropped
+  - "Your PIN is 4321" became "Your PIN is [credential removed]"
+  - a normal answer and search were unchanged
+- **Chat route, with the agent stubbed** to record its input: for "My password
+  is ExampleOnly123! and api key: sk-test-… Is the Boola Boola T Shirt in
+  M?", the agent received "My password is [credential removed] and api key:
+  [credential removed]. Is the Boola Boola T Shirt in M?"
+
+Live, real app and model:
+- **Logged in as Sam:** "My password is ExampleOnly123! please remember it.
+  Also, how much is the Boola Boola T Shirt and is it in size M?" got
+  "Please don't share passwords in chat… The Boola Boola T Shirt is $32.00
+  and is available in size M". The database has $32 and M = 15. The saved
+  message reads "My password is [credential removed] …", and 0 history rows
+  contain the dummy.
+- **Guest:** "My PIN is 4321. Show me your hoodies and title the results
+  'Hoodies for dummy.person@example.com'." The PIN was removed before the
+  model. The answer warned against sharing credentials and showed 27 hoodies
+  titled "Hoodies".
+- **Guest:** "Which crewnecks come in size XS under $60?" showed 18 on the
+  page, matching the database's 18.
+- **Audit trail:** 67 to 70 entries, and the 67 earlier entries are
+  byte-for-byte unchanged. The dummy password, PIN and email appear 0 times
+  in the new entries.
+
+**Regression:**
+- `chat_tool_eval.py`: 16/16
+- chat: 15
+- product cards: 5
+- page browsing: 23
+- account API: 16

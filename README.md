@@ -162,7 +162,7 @@ Results of the browser tests that were run are recorded in
 
 ```
 backend/    main.py (API) · agent.py (model, agent, limits) · tools.py · models.py · prompts/prompt.md
-            auth.py · chat_store.py · catalog.py · audit.py · db.py · prepare_images.py
+            auth.py · chat_store.py · catalog.py · audit.py · privacy.py · db.py · prepare_images.py
 frontend/   React + Vite + TypeScript app (src/pages, src/components, src/index.css)
 output/     reports, screenshots (app_check_images/), audit trail, test results
 tests/      chat_tool_eval.py

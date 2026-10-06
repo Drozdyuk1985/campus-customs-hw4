@@ -27,6 +27,7 @@ import agent
 import auth
 import catalog
 import chat_store
+import privacy
 from db import PRODUCTS_DIR, connect_ro
 from models import (
     BrowseRequest, ChatHistory, ChatOption, ChatProduct, ChatRequest, ChatResponse, PageContext, PageSearchResults,
@@ -173,7 +174,9 @@ async def chat(body: ChatRequest, request: Request, cc_session: str | None = Coo
         page_description=page_description,
         viewed_product=viewed,
     )
-    message = chat_store.redact(body.message.strip())
+    # Card numbers and explicitly shared credentials are removed before the message
+    # reaches the model, guest memory, saved history or the audit trail (privacy.py).
+    message = privacy.redact(body.message.strip())
     saved_history = chat_store.model_history(user["id"]) if user else None
     try:
         conversation_id, out = await agent.chat(message, body.conversation_id, owner, deps, saved_history)
