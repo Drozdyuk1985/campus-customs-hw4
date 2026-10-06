@@ -1,0 +1,151 @@
+{
+  "run_at": "2026-10-06T21:32:01+00:00",
+  "how": "Real messages typed into the website's chat panel (headless Chrome); search_results is what POST /api/chat returned to the page.",
+  "turns": [
+    {
+      "user": "What hoodies do you have?",
+      "reply": "I found 27 hoodies, ranging from $45.00 to $88.00. I’m showing the available styles on the page—would you like to narrow them down by college, sport, colour, or size?",
+      "search_results": {
+        "title": "Yale Hoodies",
+        "query": "hoodie",
+        "category": "Hoodies",
+        "max_price": null,
+        "sort": "relevance",
+        "total": 27,
+        "exact": true,
+        "names": [
+          "Basic Hoodie Big Yale",
+          "Brooks Brothers Double Knit Full Zip Hoodie Yale",
+          "Champion Reverse Weave Hoodie 1",
+          "Crew Left Chest Hoodie",
+          "District Vit Hoodie Vintage Bulldog",
+          "District Vit Hoodie Vintage Sailor Bulldog",
+          "Fencing Left Chest Hoodie",
+          "Ice Hockey Left Chest Hoodie",
+          "Sailing Left Chest Hoodie",
+          "Squash Left Chest Hoodie",
+          "The Forest School Hoodie",
+          "Volleyball Left Chest Hoodie",
+          "Yale Aunt Hoodie",
+          "Yale Dad Hoodie",
+          "Yale Grandma Hoodie",
+          "Yale Grandpa Hoodie",
+          "Yale Mom Hoodie",
+          "Yale Sports Hoodie Baseball",
+          "Yale Sports Hoodie Diving",
+          "Yale Sports Hoodie Golf",
+          "Yale Sports Hoodie Hockey",
+          "Yale Sports Hoodie Soccer",
+          "Yale Sports Hoodie Swimming",
+          "Yale Sports Hoodie Tennis",
+          "Yale Uncle Hoodie",
+          "Champion Full Zip Hood",
+          "Ua Gameday Double Knit Hood"
+        ]
+      },
+      "chat_cards": []
+    },
+    {
+      "user": "Can you show me Saybrook stuff under $60?",
+      "reply": "I found 2 Saybrook items under $60.00, priced from $32.00 to $58.00, and I’m showing them on the page. You can narrow the results further by garment type, colour, or size.",
+      "search_results": {
+        "title": "Saybrook stuff under $60",
+        "query": "Saybrook",
+        "category": null,
+        "max_price": 60,
+        "sort": "relevance",
+        "total": 2,
+        "exact": true,
+        "names": [
+          "Saybrook College Crewneck",
+          "Saybrook Logo T Shirt"
+        ]
+      },
+      "chat_cards": []
+    },
+    {
+      "user": "Show me your beanies",
+      "reply": "We don’t have any beanies in the catalogue—Campus Customs currently offers clothing such as T-shirts, long sleeves, crewnecks, hoodies, quarter-zips, jackets and fleece. I can show you Yale apparel in one of those categories instead.",
+      "search_results": {
+        "title": "Beanies",
+        "query": "beanies",
+        "category": null,
+        "max_price": null,
+        "sort": "relevance",
+        "total": 0,
+        "exact": false,
+        "names": []
+      },
+      "chat_cards": []
+    },
+    {
+      "user": "How much is the Basic Hoodie Big Yale?",
+      "reply": "The Basic Hoodie Big Yale is $68.00. It’s currently available in XS through XXL, in navy blue or white.",
+      "search_results": null,
+      "chat_cards": [
+        "basic-hoodie-big-yale"
+      ]
+    },
+    {
+      "user": "Show me your hoodies, cheapest first please",
+      "reply": "I found 27 hoodies, priced from $45.00 to $88.00, with the least expensive first. You can narrow them down by size, colour, or Yale college if you’d like.",
+      "search_results": {
+        "title": "Hoodies, cheapest first",
+        "query": "hoodie",
+        "category": "Hoodies",
+        "max_price": null,
+        "sort": "price_low_to_high",
+        "total": 27,
+        "exact": true,
+        "names": [
+          "Ua Gameday Double Knit Hood",
+          "Yale Sports Hoodie Tennis",
+          "Basic Hoodie Big Yale",
+          "Champion Reverse Weave Hoodie 1",
+          "Crew Left Chest Hoodie",
+          "District Vit Hoodie Vintage Bulldog",
+          "District Vit Hoodie Vintage Sailor Bulldog",
+          "Fencing Left Chest Hoodie",
+          "Ice Hockey Left Chest Hoodie",
+          "Sailing Left Chest Hoodie",
+          "Squash Left Chest Hoodie",
+          "The Forest School Hoodie",
+          "Volleyball Left Chest Hoodie",
+          "Yale Aunt Hoodie",
+          "Yale Dad Hoodie",
+          "Yale Grandma Hoodie",
+          "Yale Grandpa Hoodie",
+          "Yale Mom Hoodie",
+          "Yale Sports Hoodie Baseball",
+          "Yale Sports Hoodie Diving",
+          "Yale Sports Hoodie Golf",
+          "Yale Sports Hoodie Hockey",
+          "Yale Sports Hoodie Soccer",
+          "Yale Sports Hoodie Swimming",
+          "Yale Uncle Hoodie",
+          "Brooks Brothers Double Knit Full Zip Hoodie Yale",
+          "Champion Full Zip Hood"
+        ]
+      },
+      "chat_cards": []
+    },
+    {
+      "user": "Show me long sleeve shirts",
+      "reply": "I found 2 long-sleeve shirts, both priced at $45.00. You can browse them below; would you like to narrow the options by size or colour?",
+      "search_results": {
+        "title": "Long-sleeve shirts",
+        "query": "long sleeve shirts",
+        "category": "Long Sleeves",
+        "max_price": null,
+        "sort": "relevance",
+        "total": 2,
+        "exact": true,
+        "names": [
+          "Dry Zone Long Sleeve",
+          "Ua Mens Tech L S 2 0"
+        ]
+      },
+      "chat_cards": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# HW4 Campus Customs - Python dependencies (tested on Python 3.13).
+# sqlite3 is in the standard library.
+fastapi>=0.142.2
+uvicorn[standard]>=0.54.0
+python-dotenv>=1.2.4
+pydantic-ai-slim[openai]>=2.54.0
+pillow>=11.0  # prepare_images.py (display copies of product photos)

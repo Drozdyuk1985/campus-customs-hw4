@@ -1,0 +1,31 @@
+{
+  "run_at": "2026-10-06T22:00:44+00:00",
+  "how": "Real messages typed into the running website's chat (headless Chrome). Filter and error-state checks are listed in output/usability.md.",
+  "turns": [
+    {
+      "label": "vague: Morse",
+      "user": "Do you have the Morse one in medium?",
+      "reply": "Which Morse item do you mean: the Morse 1/4 Zip ($72.00) or the Morse Logo T-Shirt ($32.00)? Both are available in medium.",
+      "options": [
+        "morse-1-4-zip",
+        "morse-logo-t-shirt"
+      ],
+      "products": []
+    },
+    {
+      "label": "tapped option: Morse 1 4 Zip",
+      "user": "I mean the Morse 1 4 Zip.",
+      "reply": "Yes—the Morse 1/4 Zip is available in medium, with 8 in stock. It’s $72.00."
+    },
+    {
+      "label": "alternatives: grandpa crewneck in M (product page)",
+      "user": "Is this available in medium?",
+      "reply": "Medium is sold out in the Yale Grandpa Crewneck. It’s currently available in XS, S, L and XL. For a medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s $68.00 and has a hoodie style; the Super Heavyweight Crewneck Arched Yale Crest is $58.00 with 5 in M, but has a different design.",
+      "options": [],
+      "products": [
+        "yale-grandpa-hoodie",
+        "super-heavyweight-crewneck-arched-yale-crest"
+      ]
+    }
+  ]
+}

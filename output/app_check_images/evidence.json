@@ -1,0 +1,52 @@
+{
+  "run_at": "2026-10-06T22:24:11.244Z",
+  "checks": [
+    {
+      "id": 1,
+      "question": "Do you have the Basic Hoodie Big Yale in XL? How many are left and what does it cost?",
+      "reply": "Yes—there are 2 Basic Hoodie Big Yale hoodies left in XL, so it’s low stock. The price is $68.00.",
+      "db": {
+        "product": "Basic Hoodie Big Yale",
+        "price": "$68.00",
+        "xl_quantity": 2,
+        "all_sizes": "L=8, M=5, S=5, XL=2, XS=15, XXL=25"
+      },
+      "pass": true
+    },
+    {
+      "id": 2,
+      "question": "What hoodies do you have?",
+      "reply": "I found 27 hoodies, ranging from $45.00 to $88.00. You can browse them on the page, and I can narrow them down by college, sport, colour, or size.",
+      "cards_on_page": 27,
+      "db_hoodies": 27,
+      "search_results": {
+        "title": "Yale Hoodies",
+        "query": "hoodie",
+        "category": "Hoodies",
+        "total": 27
+      },
+      "card_click_opened": "basic-hoodie-big-yale",
+      "pass": true
+    },
+    {
+      "id": 3,
+      "question": "Is this available in medium?",
+      "page": "/products/yale-grandpa-crewneck",
+      "reply": "Medium is sold out in the Yale Grandpa Crewneck. It’s currently available in XS, S, L and XL. For a medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s $68.00 and has a hoodie style; the Super Heavyweight Crewneck Arched Yale Crest is $58.00 with 5 in M, but has a different design.",
+      "db": {
+        "requested_m": 0,
+        "price": 58,
+        "alternatives_m_stock": {
+          "yale-grandpa-hoodie": 25,
+          "super-heavyweight-crewneck-arched-yale-crest": 5
+        },
+        "alternatives_price": {
+          "yale-grandpa-hoodie": 68,
+          "super-heavyweight-crewneck-arched-yale-crest": 58
+        }
+      },
+      "pass": true
+    }
+  ],
+  "page_errors": []
+}

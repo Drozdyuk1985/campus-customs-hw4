@@ -1,0 +1,32 @@
+# Secrets - never commit a real key (copy .env.example to .env instead)
+.env
+.env.*
+!.env.example
+
+# Supplied course data - keep the database and product images out of GitHub
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node / Vite
+node_modules/
+frontend/dist/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Audit trail helpers (the trail itself, output/audit_trail.json, is kept)
+output/*.lock
+output/*.json.tmp

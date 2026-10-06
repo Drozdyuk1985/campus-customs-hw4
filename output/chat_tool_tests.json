@@ -1,0 +1,720 @@
+{
+  "run_at": "2026-10-06T22:40:34+00:00",
+  "model": "gpt-5.6-luna",
+  "passed": 16,
+  "total": 16,
+  "results": [
+    {
+      "id": "vague: two Morse products",
+      "turns": [
+        "Do you have the Morse one in medium?"
+      ],
+      "expected_from_db": "Ambiguous: Morse 1 4 Zip and Morse Logo T Shirt; ask which, offer both as options",
+      "reply": "Yes—there are two Morse items available in medium: the Morse 1/4 Zip ($72.00) and the Morse Logo T-Shirt ($32.00). Which one did you mean?",
+      "product_ids": [],
+      "clarify_options": [
+        "morse-1-4-zip",
+        "morse-logo-t-shirt"
+      ],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Morse"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "Yes—there are two Morse items available in medium: the Morse 1/4 Zip ($72.00) and the Morse Logo T-Shirt ($32.00). Which one did you mean?",
+            "clarify_options": [
+              "morse-1-4-zip",
+              "morse-logo-t-shirt"
+            ],
+            "product_ids": []
+          }
+        }
+      ],
+      "checks": {
+        "asks a follow-up": true,
+        "offers both Morse products as options": true,
+        "options are all real Morse products": true
+      },
+      "passed": true
+    },
+    {
+      "id": "vague: Saybrook",
+      "turns": [
+        "Is the Saybrook one still available?"
+      ],
+      "expected_from_db": "3 Saybrook products (crewneck, logo tee, fleece); ask which",
+      "reply": "I found three Saybrook items, and they’re currently available: the College Crewneck ($58.00), Logo T-Shirt ($32.00), and Sweater Fleece Jacket ($98.00). Which one did you mean?",
+      "product_ids": [],
+      "clarify_options": [
+        "saybrook-college-crewneck",
+        "saybrook-logo-t-shirt",
+        "saybrook-sweater-fleece-jacket"
+      ],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Saybrook"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "I found three Saybrook items, and they’re currently available: the College Crewneck ($58.00), Logo T-Shirt ($32.00), and Sweater Fleece Jacket ($98.00). Which one did you mean?",
+            "clarify_options": [
+              "saybrook-college-crewneck",
+              "saybrook-logo-t-shirt",
+              "saybrook-sweater-fleece-jacket"
+            ],
+            "product_ids": []
+          }
+        }
+      ],
+      "checks": {
+        "asks a follow-up": true,
+        "offers the Saybrook products": true,
+        "no non-Saybrook options": true
+      },
+      "passed": true
+    },
+    {
+      "id": "alternatives: sold-out size",
+      "turns": [
+        "Do you have the Yale Grandpa Crewneck in medium?"
+      ],
+      "expected_from_db": "M sold out (0). Grandpa Hoodie has M=25; tool should be used",
+      "reply": "The Yale Grandpa Crewneck is sold out in medium. It’s $58.00 and available in XS, S, L, and XL. For medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s a pullover hoodie and costs $68.00; the Super Heavyweight Crewneck Arched Yale Crest is also available in medium for $58.00, with a different Yale crest design.",
+      "product_ids": [
+        "yale-grandpa-hoodie",
+        "super-heavyweight-crewneck-arched-yale-crest"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Yale Grandpa Crewneck"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "yale-grandpa-crewneck",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "find_alternatives",
+          "args": {
+            "product_id": "yale-grandpa-crewneck",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Yale Grandpa Crewneck is sold out in medium. It’s $58.00 and available in XS, S, L, and XL. For medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s a pullover hoodie and costs $68.00; the Super Heavyweight Crewneck Arched Yale Crest is also available in medium for $58.00, with a different Yale crest design.",
+            "product_ids": [
+              "yale-grandpa-hoodie",
+              "super-heavyweight-crewneck-arched-yale-crest"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "says sold out": true,
+        "called find_alternatives": true,
+        "offers the Grandpa Hoodie": true,
+        "explains a difference (price or style)": true,
+        "every offered product is in stock in M": true,
+        "only offers products the tool returned": true
+      },
+      "passed": true
+    },
+    {
+      "id": "alternatives: bomber in medium",
+      "turns": [
+        "I want the Brooks Brothers bomber jacket in a medium."
+      ],
+      "expected_from_db": "M sold out (0); alternatives with M in stock, e.g. Brooks Brothers Double Knit Full Zip Hoodie (M=8)",
+      "reply": "The Brooks Brothers Bomber Jacket Yale is sold out in medium. It’s available in XS, L, and XXL. In medium, the closest alternatives are the Brooks Brothers Double Knit Full Zip Hoodie Yale—same Brooks Brothers theme and navy/white colors, but a hoodie and $10 less at $88.00—or the Divinity School Fleece Sweater, a navy full-zip fleece jacket at $98.00.",
+      "product_ids": [
+        "brooks-brothers-double-knit-full-zip-hoodie-yale",
+        "divinity-school-fleece-sweater"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Brooks Brothers bomber jacket"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "brooks-brothers-bomber-jacket-yale",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "find_alternatives",
+          "args": {
+            "product_id": "brooks-brothers-bomber-jacket-yale",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Brooks Brothers Bomber Jacket Yale is sold out in medium. It’s available in XS, L, and XXL. In medium, the closest alternatives are the Brooks Brothers Double Knit Full Zip Hoodie Yale—same Brooks Brothers theme and navy/white colors, but a hoodie and $10 less at $88.00—or the Divinity School Fleece Sweater, a navy full-zip fleece jacket at $98.00.",
+            "product_ids": [
+              "brooks-brothers-double-knit-full-zip-hoodie-yale",
+              "divinity-school-fleece-sweater"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "says sold out": true,
+        "called find_alternatives": true,
+        "offers at least one alternative": true,
+        "every offered product is in stock in M": true,
+        "only offers products the tool returned": true
+      },
+      "passed": true
+    },
+    {
+      "id": "price",
+      "turns": [
+        "How much is the Basic Hoodie Big Yale?"
+      ],
+      "expected_from_db": "Basic Hoodie Big Yale costs $68.00",
+      "reply": "The Basic Hoodie Big Yale is $68.00. It’s available in navy blue and white, with sizes XS through XXL currently in stock.",
+      "product_ids": [
+        "basic-hoodie-big-yale"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Basic Hoodie Big Yale"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Basic Hoodie Big Yale is $68.00. It’s available in navy blue and white, with sizes XS through XXL currently in stock.",
+            "product_ids": [
+              "basic-hoodie-big-yale"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "used search/details tool": true,
+        "says $68.00": true,
+        "product card": true
+      },
+      "passed": true
+    },
+    {
+      "id": "sold-out size",
+      "turns": [
+        "Do you have the Yale Grandpa Crewneck in medium?"
+      ],
+      "expected_from_db": "M is sold out (0); in stock: XS, S, L, XL",
+      "reply": "The Yale Grandpa Crewneck is sold out in medium. It’s $58.00 and available in XS, S, L, and XL. For medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s a pullover hoodie and costs $68.00; the Super Heavyweight Crewneck Arched Yale Crest is also available in medium for $58.00, with a different Yale crest design.",
+      "product_ids": [
+        "yale-grandpa-hoodie",
+        "super-heavyweight-crewneck-arched-yale-crest"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Yale Grandpa Crewneck"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "yale-grandpa-crewneck",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "find_alternatives",
+          "args": {
+            "product_id": "yale-grandpa-crewneck",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Yale Grandpa Crewneck is sold out in medium. It’s $58.00 and available in XS, S, L, and XL. For medium, the Yale Grandpa Hoodie is in stock (25 available), but it’s a pullover hoodie and costs $68.00; the Super Heavyweight Crewneck Arched Yale Crest is also available in medium for $58.00, with a different Yale crest design.",
+            "product_ids": [
+              "yale-grandpa-hoodie",
+              "super-heavyweight-crewneck-arched-yale-crest"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "used check_size_stock or details": true,
+        "says M is sold out": true,
+        "offers in-stock sizes": true
+      },
+      "passed": true
+    },
+    {
+      "id": "stock by size",
+      "turns": [
+        "What sizes of the Saybrook College Crewneck are in stock, and how many of each?"
+      ],
+      "expected_from_db": "XS=15; S=15; M=15; L=2; XL=15; XXL=0",
+      "reply": "The Saybrook College Crewneck is in stock in:\n- XS: 15\n- S: 15\n- M: 15\n- L: 2 (low stock)\n- XL: 15\nXXL is sold out. There are 62 total in stock.",
+      "product_ids": [
+        "saybrook-college-crewneck"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Saybrook College Crewneck"
+          }
+        },
+        {
+          "tool": "get_product_details",
+          "args": {
+            "product_id": "saybrook-college-crewneck"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Saybrook College Crewneck is in stock in:\n- XS: 15\n- S: 15\n- M: 15\n- L: 2 (low stock)\n- XL: 15\nXXL is sold out. There are 62 total in stock.",
+            "product_ids": [
+              "saybrook-college-crewneck"
+            ],
+            "clarify_options": [],
+            "show_on_page": null
+          }
+        }
+      ],
+      "checks": {
+        "used details/size tool": true,
+        "every quantity correct": true,
+        "says XXL sold out": true
+      },
+      "passed": true
+    },
+    {
+      "id": "low stock",
+      "turns": [
+        "Is the Basic Hoodie Big Yale available in XL?"
+      ],
+      "expected_from_db": "XL: 2 left (low stock)",
+      "reply": "Yes—the Basic Hoodie Big Yale is available in XL, but there are only 2 left. It’s $68.00.",
+      "product_ids": [
+        "basic-hoodie-big-yale"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Basic Hoodie Big Yale"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "basic-hoodie-big-yale",
+            "size": "XL"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "Yes—the Basic Hoodie Big Yale is available in XL, but there are only 2 left. It’s $68.00.",
+            "product_ids": [
+              "basic-hoodie-big-yale"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "used check_size_stock or details": true,
+        "says 2 left": true
+      },
+      "passed": true
+    },
+    {
+      "id": "ambiguous product",
+      "turns": [
+        "Do you have the grandpa one in large?"
+      ],
+      "expected_from_db": "Ambiguous: Yale Grandpa Crewneck (L=8) and Yale Grandpa Hoodie (L=0); should ask which one, or clearly give both, never guess one",
+      "reply": "Which Grandpa piece did you mean—the Yale Grandpa Crewneck ($58.00) or the Yale Grandpa Hoodie ($68.00)? The crewneck is available in L, while the hoodie is sold out in L.",
+      "product_ids": [],
+      "clarify_options": [
+        "yale-grandpa-crewneck",
+        "yale-grandpa-hoodie"
+      ],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "grandpa"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "Which Grandpa piece did you mean—the Yale Grandpa Crewneck ($58.00) or the Yale Grandpa Hoodie ($68.00)? The crewneck is available in L, while the hoodie is sold out in L.",
+            "clarify_options": [
+              "yale-grandpa-crewneck",
+              "yale-grandpa-hoodie"
+            ],
+            "product_ids": []
+          }
+        }
+      ],
+      "checks": {
+        "names both grandpa products": true,
+        "asks a follow-up question": true,
+        "does not answer for only one product": true
+      },
+      "passed": true
+    },
+    {
+      "id": "no product named",
+      "turns": [
+        "Is it in stock in small?"
+      ],
+      "expected_from_db": "Unclear which product: should ask which one, no stock claim",
+      "reply": "Which product would you like checked in size small? Please share its name or link—I don’t have a product page open right now.",
+      "product_ids": [],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "",
+            "size_in_stock": "S"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "Which product would you like checked in size small? Please share its name or link—I don’t have a product page open right now.",
+            "product_ids": [],
+            "clarify_options": []
+          }
+        }
+      ],
+      "checks": {
+        "asks which product": true,
+        "no stock tool guess": true
+      },
+      "passed": true
+    },
+    {
+      "id": "description + price",
+      "turns": [
+        "Can you tell me about the Brooks Brothers bomber jacket? What does it look like and how much is it?"
+      ],
+      "expected_from_db": "$98.00; Dark navy full-zip bomber jacket with a stand collar, ribbed cuffs and waistband, angled f…",
+      "reply": "The Brooks Brothers Bomber Jacket Yale is a dark navy full-zip bomber with a stand collar, ribbed cuffs and waistband, angled flap pockets, and a white YALE wordmark on the left chest. It’s $98.00. It’s currently available in XS, L, and XXL; S, M, and XL are sold out.",
+      "product_ids": [
+        "brooks-brothers-bomber-jacket-yale"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Brooks Brothers bomber jacket"
+          }
+        },
+        {
+          "tool": "get_product_details",
+          "args": {
+            "product_id": "brooks-brothers-bomber-jacket-yale"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Brooks Brothers Bomber Jacket Yale is a dark navy full-zip bomber with a stand collar, ribbed cuffs and waistband, angled flap pockets, and a white YALE wordmark on the left chest. It’s $98.00. It’s currently available in XS, L, and XXL; S, M, and XL are sold out.",
+            "product_ids": [
+              "brooks-brothers-bomber-jacket-yale"
+            ],
+            "clarify_options": [],
+            "show_on_page": null
+          }
+        }
+      ],
+      "checks": {
+        "says $98.00": true,
+        "describes it from the database": true,
+        "product card": true
+      },
+      "passed": true
+    },
+    {
+      "id": "not in catalogue",
+      "turns": [
+        "Do you sell a Harvard hoodie?"
+      ],
+      "expected_from_db": "No Harvard hoodie in the catalogue (only the 2025 Yale vs Harvard T-shirt mentions Harvard)",
+      "reply": "I couldn’t find an exact Harvard hoodie in the catalogue. We do have Yale hoodies, plus a 2025 Yale Vs Harvard T Shirt. Would you like to see the Yale hoodies or the Yale–Harvard T-shirt?",
+      "product_ids": [
+        "basic-hoodie-big-yale",
+        "brooks-brothers-double-knit-full-zip-hoodie-yale",
+        "2025-yale-vs-harvard-t-shirt"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Harvard hoodie"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "I couldn’t find an exact Harvard hoodie in the catalogue. We do have Yale hoodies, plus a 2025 Yale Vs Harvard T Shirt. Would you like to see the Yale hoodies or the Yale–Harvard T-shirt?",
+            "product_ids": [
+              "basic-hoodie-big-yale",
+              "brooks-brothers-double-knit-full-zip-hoodie-yale",
+              "2025-yale-vs-harvard-t-shirt"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "used search": true,
+        "says no exact match": true,
+        "any 'starting at'/'from' price is the real minimum": true,
+        "no invented hoodie card": true
+      },
+      "passed": true
+    },
+    {
+      "id": "two sizes sold out",
+      "turns": [
+        "I need the Football Left Chest T Shirt in M or XS. Do you have either?"
+      ],
+      "expected_from_db": "M=0, XS=0 (both sold out); in stock: S=2, L=2, XXL=5",
+      "reply": "Sorry—the Football Left Chest T Shirt is sold out in both M and XS. It is available in S, L, and XXL. Closest alternatives, all $32.00:\n- Tri Blend Sports Football T Shirt: football theme, available in both sizes; heather gray or navy blue instead of navy or white.\n- 2025 Yale Vs Harvard T Shirt: available in both sizes, with a different Harvard-Yale football design and heather gray, white, red, or navy blue.\n- Boola Boola T Shirt: available in both sizes, with a different BOOLA BOOLA chest graphic in navy, white, or gray.",
+      "product_ids": [
+        "tri-blend-sports-football-t-shirt",
+        "2025-yale-vs-harvard-t-shirt",
+        "boola-boola-t-shirt"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Football Left Chest T Shirt"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "football-left-chest-t-shirt",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "football-left-chest-t-shirt",
+            "size": "XS"
+          }
+        },
+        {
+          "tool": "find_alternatives",
+          "args": {
+            "product_id": "football-left-chest-t-shirt",
+            "size": "M"
+          }
+        },
+        {
+          "tool": "find_alternatives",
+          "args": {
+            "product_id": "football-left-chest-t-shirt",
+            "size": "XS"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "Sorry—the Football Left Chest T Shirt is sold out in both M and XS. It is available in S, L, and XXL. Closest alternatives, all $32.00:\n- Tri Blend Sports Football T Shirt: football theme, available in both sizes; heather gray or navy blue instead of navy or white.\n- 2025 Yale Vs Harvard T Shirt: available in both sizes, with a different Harvard-Yale football design and heather gray, white, red, or navy blue.\n- Boola Boola T Shirt: available in both sizes, with a different BOOLA BOOLA chest graphic in navy, white, or gray.",
+            "product_ids": [
+              "tri-blend-sports-football-t-shirt",
+              "2025-yale-vs-harvard-t-shirt",
+              "boola-boola-t-shirt"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "says sold out": true,
+        "does not claim M or XS in stock": true,
+        "offers sizes that are in stock": true
+      },
+      "passed": true
+    },
+    {
+      "id": "follow-up in context",
+      "turns": [
+        "I'm looking at the Morse quarter-zip.",
+        "How many do you have in large? And in small?"
+      ],
+      "expected_from_db": "L=0 (sold out), S=2 (low)",
+      "reply": "There are 0 in Large—it’s sold out. Small has 2 left. Other available sizes are XS, M, XL, and XXL.",
+      "product_ids": [
+        "morse-1-4-zip"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "Morse quarter-zip"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The Morse 1/4 Zip is $72.00 and comes in heather gray, white, red, and black. It’s currently in stock in XS, S, M, XL, and XXL. Would you like the full details or a stock check for a particular size?",
+            "product_ids": [
+              "morse-1-4-zip"
+            ]
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "morse-1-4-zip",
+            "size": "L"
+          }
+        },
+        {
+          "tool": "check_size_stock",
+          "args": {
+            "product_id": "morse-1-4-zip",
+            "size": "S"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "There are 0 in Large—it’s sold out. Small has 2 left. Other available sizes are XS, M, XL, and XXL.",
+            "product_ids": [
+              "morse-1-4-zip"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "L sold out": true,
+        "S: 2 left": true
+      },
+      "passed": true
+    },
+    {
+      "id": "cheapest in category",
+      "turns": [
+        "What's the cheapest hoodie you have?"
+      ],
+      "expected_from_db": "Cheapest Hoodies-category price is $45.00",
+      "reply": "The cheapest hoodies are $45.00, tied between the Ua Gameday Double Knit Hood and Yale Sports Hoodie Tennis. Would you like me to compare them by design or available colours?",
+      "product_ids": [
+        "ua-gameday-double-knit-hood",
+        "yale-sports-hoodie-tennis"
+      ],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "hoodie",
+            "category": "Hoodies",
+            "sort": "price_low_to_high"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "The cheapest hoodies are $45.00, tied between the Ua Gameday Double Knit Hood and Yale Sports Hoodie Tennis. Would you like me to compare them by design or available colours?",
+            "product_ids": [
+              "ua-gameday-double-knit-hood",
+              "yale-sports-hoodie-tennis"
+            ]
+          }
+        }
+      ],
+      "checks": {
+        "says $45.00": true,
+        "names a hoodie at that price": true,
+        "no lower made-up price": true
+      },
+      "passed": true
+    },
+    {
+      "id": "category + budget",
+      "turns": [
+        "What jackets or fleeces do you have under $100?"
+      ],
+      "expected_from_db": "8 in Jackets & Fleece, all $98.00",
+      "reply": "I found 8 jackets and fleeces under $100, ranging from $98.00 to $98.00. They include fleece jackets, sweater fleeces, and a Yale bomber jacket. The results are shown on the page—want to narrow them by size, school, residential college, or colour?",
+      "product_ids": [],
+      "clarify_options": [],
+      "tools_called": [
+        {
+          "tool": "search_products",
+          "args": {
+            "query": "",
+            "category": "Jackets & Fleece",
+            "max_price": 100,
+            "sort": "price_low_to_high"
+          }
+        },
+        {
+          "tool": "final_result",
+          "args": {
+            "reply": "I found 8 jackets and fleeces under $100, ranging from $98.00 to $98.00. They include fleece jackets, sweater fleeces, and a Yale bomber jacket. The results are shown on the page—want to narrow them by size, school, residential college, or colour?",
+            "product_ids": [],
+            "show_on_page": {
+              "query": "",
+              "category": "Jackets & Fleece",
+              "max_price": 100,
+              "sort": "price_low_to_high",
+              "title": "Jackets & fleeces under $100"
+            }
+          }
+        }
+      ],
+      "checks": {
+        "used search with filter": true,
+        "prices are $98.00 only": true
+      },
+      "passed": true
+    }
+  ]
+}
