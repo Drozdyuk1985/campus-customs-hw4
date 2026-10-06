@@ -2077,7 +2077,16 @@ Live, real app and model:
   versions weren't run. A tokenizer/AST scan of `backend/` and `tests/` found
   no 3.12-only syntax (no nested same-quote f-strings, `type` statements or
   generic syntax). The stated minimum is therefore the dependencies' 3.10.
-- **Build and tests:** the build and the non-chat browser checks were rerun
-  after the change, and a fresh clone from GitHub was tested by following the
-  README (results in AI_prompts.md, Problem 13 follow-up). Behaviour didn't
-  change, so no other evidence files were regenerated.
+- **Build and tests:** the frontend build succeeded with 0 lint errors, and
+  the non-chat browser checks passed (site 29, design 16, accounts 20).
+  Behaviour didn't change, so no other evidence files were regenerated.
+- **Fresh clone from GitHub** (commit 964e313), using the README's exact
+  commands:
+  - Clone into `hw4`, venv, `pip install` (5/5 packages), `npm install` (no
+    engine errors) and build all worked.
+  - There's no `data/` folder in the repository. Adding the original supplied
+    files left `git status` clean.
+  - Backend and website ran, with 102 products served through the website,
+    and the supplied test account logged in.
+  - A real chat answered "Boola Boola T Shirt is $32.00 … 15 available in M",
+    which matches the database.
