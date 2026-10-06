@@ -559,4 +559,49 @@ Prompt
 
 Follow-up
 
-   none
+   Problem 13 follow-up:
+
+   Please correct the setup instructions so someone downloading the
+   repository can run it without guessing.
+
+   The README currently says Node.js 20+, but our Vite packages require
+   ^20.19.0 or >=22.12.0. Update the README and harness with the supported
+   versions, and add the matching Node requirement to frontend/package.json.
+
+   Include the exact command for cloning the repository into a folder named
+   hw4, followed by the installation and startup steps.
+
+   Also clarify that the current backend uses fcntl, which is unavailable on
+   Windows. Either document macOS/Linux as the supported setup or make the
+   file locking work on Windows before suggesting Windows instructions.
+
+   After the earlier fixes, rerun the frontend build and relevant tests,
+   update only the evidence affected by the changes, and push everything to
+   the same public repository. Keep the database, supplied product images and
+   real .env out of GitHub.
+
+   Record this follow-up in AI_prompts.md and give me the final repository
+   URL.
+
+   Needed because the README understated the Node requirement, had no clone
+   command, and hinted at Windows support that the fcntl-based backend
+   doesn't have.
+
+   Results (2026-10-06):
+   - Node requirement: read from the installed packages' engines (Vite 8,
+     @vitejs/plugin-react, Rolldown, Oxlint: ^20.19.0 || >=22.12.0).
+     - Added to frontend/package.json, with engine-strict in frontend/.npmrc.
+     - npm's semver confirmed 18.20, 20.18, 21.7 and 22.11 are refused, and
+       20.19, 22.12 and 24.19 are allowed.
+   - README and harness:
+     - supported setup is macOS/Linux, Python 3.10+ (tested 3.13), Node
+       ^20.19.0 or >=22.12.0
+     - exact clone command into hw4, then install and start steps
+     - the Windows hint was removed
+   - Windows: backend/audit.py now stops with a clear "supports macOS and
+     Linux" message when fcntl is missing (checked by simulating a missing
+     fcntl).
+   - Frontend build: succeeded, with 0 lint errors. Non-chat browser checks
+     passed (site 29, design 16, accounts 20). No other evidence files were
+     regenerated, because app behaviour didn't change.
+

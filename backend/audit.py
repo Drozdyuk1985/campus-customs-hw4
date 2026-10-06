@@ -20,7 +20,6 @@ Rules:
   text previews are logged, and every string passes through scrub() first.
 """
 
-import fcntl
 import json
 import os
 import re
@@ -30,6 +29,13 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    import fcntl  # file locking for the audit trail; available on macOS and Linux only
+except ImportError as e:  # pragma: no cover - Windows
+    raise ImportError(
+        "The Campus Customs backend supports macOS and Linux. It uses fcntl file locking for the "
+        "audit trail, which Windows doesn't provide (see README: 'Supported setup')."
+    ) from e
 from pydantic import BaseModel
 import privacy
 from pydantic_ai.messages import ModelMessage, ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart

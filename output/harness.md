@@ -15,12 +15,25 @@ This file has two halves:
 
 ## A. How to run it
 
-You need Python 3.11+ (tested on 3.13), Node 20+ (tested on 24) and a Portkey
-key.
+**Supported setup:**
+- **Operating system:** macOS or Linux; developed and tested on macOS.
+  Windows is **not supported**: `backend/audit.py` locks the audit file with
+  `fcntl`, which Windows lacks, and the backend stops with a message saying
+  so. WSL is untested.
+- **Python:** 3.10 or newer. That's the dependencies' minimum, and a syntax
+  scan found nothing newer in the code. Tested only on 3.13.
+- **Node.js:** **^20.19.0 or >=22.12.0**, as required by Vite 8,
+  `@vitejs/plugin-react`, Rolldown and Oxlint, and declared in
+  `frontend/package.json` under `engines`. Tested on Node 24.
+- **Also needed:** git, a Portkey key, and the supplied
+  `data/campus_customs.db` and `data/products/`.
 
 ```bash
-# once, from the hw4 folder
+# once: clone into a folder named hw4, then install
+git clone https://github.com/Drozdyuk1985/campus-customs-hw4.git hw4
+cd hw4
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+# put the supplied files in data/campus_customs.db and data/products/ (see README step 3)
 cd backend && ../.venv/bin/python prepare_images.py && cd ..   # white-background photo copies (about 25 s; optional)
 cd frontend && npm install && cd ..
 
@@ -2029,3 +2042,42 @@ Live, real app and model:
 - product cards: 5
 - page browsing: 23
 - account API: 16
+
+### Problem 13 follow-up: exact setup requirements
+
+**What was wrong:**
+- The README said "Node.js 20+", but Vite 8, `@vitejs/plugin-react`,
+  Rolldown and Oxlint require **^20.19.0 or >=22.12.0**. These ranges were
+  read from the installed packages' `engines` fields.
+- It also didn't give the clone command.
+- It suggested a Windows command, even though `fcntl` (used by the audit
+  file lock) doesn't exist on Windows.
+
+**Changes:**
+- **`frontend/package.json`:** now declares
+  `"engines": {"node": "^20.19.0 || >=22.12.0"}`. `package-lock.json` was
+  refreshed to match.
+- **`frontend/.npmrc`:** `engine-strict=true`, so `npm install` refuses an
+  unsupported Node version. Checked with npm's bundled semver: 18.20.0,
+  20.18.1, 21.7.3 and 22.11.0 are refused; 20.19.0, 22.12.0 and 24.19.0 are
+  allowed.
+- **README and section A here:**
+  - supported setup: macOS/Linux, Python ≥3.10 (tested 3.13), Node
+    ^20.19.0 or >=22.12.0
+  - the exact clone command,
+    `git clone https://github.com/Drozdyuk1985/campus-customs-hw4.git hw4`
+  - install and start steps from that folder
+  - the Windows activation hint removed
+- **`backend/audit.py`:** imports `fcntl` inside a `try` block. On Windows it
+  now stops with a clear message that the backend supports macOS and Linux,
+  instead of an unexplained `ModuleNotFoundError`.
+
+**Checks:**
+- **Python version claim:** only Python 3.13 is installed here, so older
+  versions weren't run. A tokenizer/AST scan of `backend/` and `tests/` found
+  no 3.12-only syntax (no nested same-quote f-strings, `type` statements or
+  generic syntax). The stated minimum is therefore the dependencies' 3.10.
+- **Build and tests:** the build and the non-chat browser checks were rerun
+  after the change, and a fresh clone from GitHub was tested by following the
+  README (results in AI_prompts.md, Problem 13 follow-up). Behaviour didn't
+  change, so no other evidence files were regenerated.

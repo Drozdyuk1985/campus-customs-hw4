@@ -20,27 +20,48 @@ A Yale apparel shop for Campus Customs (Yale SOM MGT 409, HW4).
 | `output/audit_trail.json` | Append-only log of real assistant activity |
 | `AI_prompts.md` | The prompts used for each problem |
 
-## What you need
+## Supported setup
 
-- Python **3.11+** (tested on 3.13)
-- Node.js **20+** (tested on 24)
-- A **Portkey API key** for the course's OpenAI access
-- The course's **supplied data**: `campus_customs.db` and the `products/`
-  image folder. They are **not in this repository**.
+- **Operating system:** macOS or Linux (developed and tested on macOS).
+  - **Windows is not supported:** the backend locks its audit file with
+    Python's `fcntl` module, which Windows doesn't have, so the backend stops
+    with a clear message there.
+  - Windows users could try WSL (Windows Subsystem for Linux), but that
+    hasn't been tested.
+- **Python:** 3.10 or newer.
+  - 3.10 is the minimum the dependencies require, and the code uses nothing
+    newer.
+  - Developed and tested on **Python 3.13**; older versions were not run.
+- **Node.js:** **^20.19.0 or >=22.12.0**, i.e. 20.19 or later in the 20.x
+  line, or 22.12 or later. This is what Vite 8, its React plugin and the
+  linter require, and it's declared in `frontend/package.json` under
+  `engines`. Tested on Node 24.
+  - Check your version with `node --version`.
+  - Node 21.x and 22.0–22.11 are **not** supported. `frontend/.npmrc` sets
+    `engine-strict=true`, so `npm install` stops with an error on an
+    unsupported version instead of only warning.
+- **Also needed:**
+  - git
+  - a **Portkey API key** for the course's OpenAI access
+  - the course's **supplied data**: `campus_customs.db` and the `products/`
+    image folder. They are **not in this repository**.
 
-## 1. Install
-
-From the `hw4` folder (the root of this repository):
+## 1. Clone into a folder named `hw4` and install
 
 ```bash
+git clone https://github.com/Drozdyuk1985/campus-customs-hw4.git hw4
+cd hw4
+
 python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 
 cd frontend
 npm install
 cd ..
 ```
+
+Run every command below from this `hw4` folder unless a step says otherwise.
 
 ## 2. Add your API key (stays on your computer)
 
@@ -80,7 +101,8 @@ hw4/
 
 Optional, recommended: make consistent white-background display copies of the
 photos. This takes about 25 seconds and writes `data/products_web/`. The
-originals are never changed.
+originals are never changed. Run it with the virtual environment from step 1
+still active:
 
 ```bash
 cd backend
@@ -96,9 +118,9 @@ Notes on the database:
 - New accounts and logged-in chat history are saved in `campus_customs.db`.
 - Keep a copy of the original database if you want to reset later.
 
-## 4. Start the app (two terminals)
+## 4. Start the app (two terminals, both starting in `hw4`)
 
-**Backend** (FastAPI + assistant), http://127.0.0.1:8000:
+**Terminal 1: backend** (FastAPI + assistant), http://127.0.0.1:8000:
 
 ```bash
 cd backend
@@ -106,7 +128,7 @@ source ../.venv/bin/activate
 uvicorn main:app --reload --port 8000
 ```
 
-**Frontend** (website), http://localhost:5174:
+**Terminal 2: frontend** (website), http://localhost:5174:
 
 ```bash
 cd frontend
