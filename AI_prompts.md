@@ -604,4 +604,13 @@ Follow-up
    - Frontend build: succeeded, with 0 lint errors. Non-chat browser checks
      passed (site 29, design 16, accounts 20). No other evidence files were
      regenerated, because app behaviour didn't change.
+   - Fresh clone from GitHub, following the README exactly (git clone ...
+     hw4, venv, pip, npm install, build): 5/5 Python packages installed,
+     34 npm packages added with no engine errors, and the build succeeded.
+     - The clone has no data/ folder. After adding the original supplied
+       database and photos, git status was still clean.
+     - Backend and website ran, with 102 products through the website. The
+       supplied test account logged in.
+     - A real chat answered "Boola Boola T Shirt is $32.00 ... 15 available
+       in M" (matches the database).
 
